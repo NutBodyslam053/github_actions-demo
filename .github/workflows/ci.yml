@@ -14,6 +14,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      DOCKER_IMAGE_VERSION: latest
+      VERSION_COUNTER: 0
+
     steps:
     - uses: actions/checkout@v3
 
@@ -22,7 +26,15 @@ jobs:
 
     - name: Run tests
       run: cargo test --verbose
-      
+
+    - name: Increment Version Counter
+      run: echo "VERSION_COUNTER=$((VERSION_COUNTER+1))" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Set Docker Image Version
+      run: echo "DOCKER_IMAGE_VERSION=${{ env.VERSION_COUNTER }}.0" >> $GITHUB_ENV
+      shell: bash
+
     - name: Build & push Docker image
       uses: mr-smithers-excellent/docker-build-push@v6
       with:
@@ -30,3 +42,4 @@ jobs:
         registry: docker.io
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
+        tag: ${{ env.DOCKER_IMAGE_VERSION }}
